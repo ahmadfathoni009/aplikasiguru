@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Administrasi Guru</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: #1e3a8a; /* dark blue */
+        }
+        .content-view {
+            display: none;
+        }
+        .content-view.active {
+            display: block;
+        }
+        .table-input, .table-select, .form-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: #f9fafb;
+        }
+        #notification {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            z-index: 50;
+            transition: opacity 0.5s, transform 0.5s;
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        #notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-blue-900 text-white p-4 flex flex-col">
+            <h1 class="text-2xl font-bold mb-8 text-center">Admin Guru</h1>
+            <nav>
+                <ul>
+                    <li>
+                        <a onclick="showView('daftarHadir')" class="sidebar-link active">
+                            <i class="fas fa-clipboard-user mr-2"></i> Daftar Hadir
+                        </a>
+                    </li>
+                    <li class="mt-2">
+                        <a onclick="showView('bukuNilai')" class="sidebar-link">
+                            <i class="fas fa-book-open mr-2"></i> Buku Nilai
+                        </a>
+                    </li>
+                    <li class="mt-2">
+                        <a onclick="showView('jurnalGuru')" class="sidebar-link">
+                            <i class="fas fa-pen-to-square mr-2"></i> Jurnal Guru
+                        </a>
+                    </li>
+                    <li class="mt-2">
+                        <a onclick="window.open('https://drive.google.com/drive/folders/1cAOG55z2-jph3BL7DHy_Qbpa0tqIlYO1?usp=sharing', '_blank')" class="sidebar-link">
+                            <i class="fas fa-folder-open mr-2"></i> Lihat Rekap
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="mt-auto text-center text-xs">
+                <p>&copy; 2024 Dibuat oleh Gemini</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 overflow-y-auto">
+            <!-- Daftar Hadir View -->
+            <div id="daftarHadir" class="content-view active">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">Daftar Hadir Siswa</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label for="dh-tanggal" class="block text-sm font-medium text-gray-700">Tanggal</label>
+                            <input type="date" id="dh-tanggal" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                        </div>
+                        <div>
+                            <label for="dh-kelas" class="block text-sm font-medium text-gray-700">Kelas</label>
+                            <input type="text" id="dh-kelas" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="Contoh: 4A">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Siswa</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Kehadiran</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dh-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Student rows will be injected by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-6 flex justify-between items-center">
+                        <button onclick="addStudentRow('dh-table-body', 'attendance')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                            <i class="fas fa-plus mr-2"></i>Tambah Siswa
+                        </button>
+                        <button id="btn-simpan-hadir" onclick="saveAttendance()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
+                            Simpan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buku Nilai View -->
+            <div id="bukuNilai" class="content-view">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">Buku Nilai Siswa</h2>
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label for="bn-tanggal" class="block text-sm font-medium text-gray-700">Tanggal</label>
+                            <input type="date" id="bn-tanggal" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                        </div>
+                        <div>
+                            <label for="bn-mapel" class="block text-sm font-medium text-gray-700">Mapel</label>
+                            <select id="bn-mapel" class="mt-1 block w-full form-select shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></select>
+                        </div>
+                        <div>
+                            <label for="bn-asesmen" class="block text-sm font-medium text-gray-700">Asesmen</label>
+                            <select id="bn-asesmen" class="mt-1 block w-full form-select shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Siswa</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bn-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Grade rows will be injected by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-6 flex justify-between items-center">
+                        <button onclick="addStudentRow('bn-table-body', 'grades')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                            <i class="fas fa-plus mr-2"></i>Tambah Siswa
+                        </button>
+                        <button id="btn-kirim-nilai" onclick="saveGrades()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
+                            Kirim Nilai
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jurnal Guru View -->
+            <div id="jurnalGuru" class="content-view">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">Jurnal Harian Guru</h2>
+                <div class="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+                    <form id="jurnal-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="jg-tanggal" class="block text-sm font-medium text-gray-700">Tanggal</label>
+                                <input type="date" id="jg-tanggal" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                            </div>
+                            <div>
+                                <label for="jg-jam" class="block text-sm font-medium text-gray-700">Jumlah Jam</label>
+                                <input type="number" id="jg-jam" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="jg-uraian" class="block text-sm font-medium text-gray-700">Uraian Kegiatan</label>
+                            <textarea id="jg-uraian" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"></textarea>
+                        </div>
+                        <div>
+                            <label for="jg-media" class="block text-sm font-medium text-gray-700">Media</label>
+                            <input type="text" id="jg-media" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                        </div>
+                        <div>
+                            <label for="jg-catatan" class="block text-sm font-medium text-gray-700">Catatan Siswa</label>
+                            <textarea id="jg-catatan" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"></textarea>
+                        </div>
+                        <div>
+                            <label for="jg-refleksi" class="block text-sm font-medium text-gray-700">Refleksi</label>
+                            <textarea id="jg-refleksi" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"></textarea>
+                        </div>
+                        <div class="text-right">
+                            <button type="button" id="btn-kirim-jurnal" onclick="saveJournal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
+                                Kirim
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Element -->
+    <div id="notification"></div>
+
+    <script>
+        // --- DATA ---
+        const students = [
+            "ACHMAD HAYKAL SHIDIQ", "ADIBA JANNATUL MA'WA KHUDRI", "AHNAF OZIEL KHAIRULLAH", "ALYA AZIZZAH",
+            "ANGGITA MARYAM", "ASYHA NUR AILANI", "ATHALLA TSANY ILHAMSYAH", "AZALEA KHALIQA DZAHIN",
+            "DEANDRA HAIRA ATHAYA", "FARHAN AZZAMI ZAENUDIN", "GALIH DWI PERMANA", "GIBRAL THARIQUE HASBULLAH",
+            "GUSTI NGURAH JUAN IBRAHIM", "HAFIZAH ALIYA ZAHRA", "HAIDAR SABIN RIZKILLAH", "KAMIL TSAQIF",
+            "KATHLEEN GRATIA NOVIANA BOANDAME SIDJABAT", "KEENAN AULIAN ADIREJA", "MEILANY ARINA MINATAKA",
+            "MUHAMMAD MAHERZHA ALKARIM", "MUHAMMAD RAFIF ARKANA", "MUHAMMAD ZEAN ASYRAF", "MUHAMMMAD ARRAYA YUDHISTIRA",
+            "NASIKA ZARIFA SUBANGGA", "NOFAL ZAUKI AKBAR", "RAISA FAYYAZA", "RASYID SALMAN YUSUF",
+            "REYVELINO FAISAL MANALU", "SHANUM ADEEVA RABBANI", "SYAKIRAH RAMADHANI AHMAD", "TULUS ALFAT GUSTAF JAYA PASARIBU",
+            "YOHANNA CALLISTA PUTRI SIHALOHO"
+        ];
+
+        const mapelOptions = ["Agama", "PKN", "Bahasa Indonesia", "Matematika", "IPAS", "Seni Rupa", "PJOK", "Bahasa Inggris", "PLBJ"];
+        const asesmenOptions = ["PTS", "PAS", "US", "UH", "Tugas"];
+
+        // --- GOOGLE APPS SCRIPT URLS ---
+        // !!! PENTING: Ganti URL ini dengan URL Web App Anda setelah deploy !!!
+        const SCRIPT_URL_ATTENDANCE = 'https://script.google.com/macros/s/AKfycbwc22PT2j7P03FmHLJwHXbkZDw44fKx34cN2j5Dpd6i9C0kFFUSJ2YhqjYc2YfrqN0_/exec';
+        const SCRIPT_URL_GRADES = 'https://script.google.com/macros/s/AKfycbxrZECvDMEVKx-_bE1nXou36OboNME0Qp47Amd8Z8qNJVDjfehsPOIPebTqd0M0Uq9U1g/exec';
+        const SCRIPT_URL_JOURNAL = 'https://script.google.com/macros/s/AKfycby74-RoFb6rBo_dGwhcKF4js5weCAcE_caan7ub07MQgIDMldVXU4DWGaj_8tJ4mdha/exec';
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateTable('dh-table-body', 'attendance');
+            populateTable('bn-table-body', 'grades');
+            
+            // Populate dropdowns
+            const mapelSelect = document.getElementById('bn-mapel');
+            const asesmenSelect = document.getElementById('bn-asesmen');
+            mapelOptions.forEach(opt => mapelSelect.add(new Option(opt, opt)));
+            asesmenOptions.forEach(opt => asesmenSelect.add(new Option(opt, opt)));
+
+            // Set default date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dh-tanggal').value = today;
+            document.getElementById('bn-tanggal').value = today;
+            document.getElementById('jg-tanggal').value = today;
+        });
+
+        // --- UI LOGIC ---
+        function showView(viewId) {
+            // Don't hide views if it's not a main content view
+            if (document.getElementById(viewId)) {
+                 document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active'));
+                 document.getElementById(viewId).classList.add('active');
+            
+                 document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+                 const activeLink = document.querySelector(`a[onclick="showView('${viewId}')"]`);
+                 if (activeLink) {
+                    activeLink.classList.add('active');
+                 }
+            }
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification'; // Reset class
+            notification.classList.add(isError ? 'bg-red-500' : 'bg-green-500');
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function createAttendanceRow(studentName) {
+            return `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <input type="text" class="table-input student-name bg-gray-100" value="${studentName}" readonly>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <select class="table-select attendance-status">
+                        <option>Hadir</option>
+                        <option>Sakit</option>
+                        <option>Ijin</option>
+                        <option>Alpa</option>
+                    </select>
+                </td>
+            `;
+        }
+        
+        function createGradesRow(studentName) {
+            return `
+                <td class="px-4 py-2"><input type="text" class="table-input student-name bg-gray-100" value="${studentName}" readonly></td>
+                <td class="px-4 py-2"><input type="number" class="table-input grade-nilai" min="0" max="100" placeholder="0-100"></td>
+            `;
+        }
+        
+        function populateTable(tableBodyId, type) {
+            const tableBody = document.getElementById(tableBodyId);
+            tableBody.innerHTML = '';
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                if (type === 'attendance') {
+                    row.innerHTML = createAttendanceRow(student);
+                } else {
+                    row.innerHTML = createGradesRow(student);
+                }
+                tableBody.appendChild(row);
+            });
+        }
+
+        function addStudentRow(tableBodyId, type) {
+            const tableBody = document.getElementById(tableBodyId);
+            const row = document.createElement('tr');
+            let newRowHtml;
+            if (type === 'attendance') {
+                newRowHtml = createAttendanceRow('');
+            } else {
+                newRowHtml = createGradesRow('');
+            }
+            row.innerHTML = newRowHtml;
+            // Make student name editable for new rows
+            row.querySelector('.student-name').readOnly = false;
+            row.querySelector('.student-name').classList.remove('bg-gray-100');
+            row.querySelector('.student-name').focus();
+            tableBody.appendChild(row);
+        }
+
+        function setLoading(button, isLoading) {
+            if (isLoading) {
+                button.disabled = true;
+                button.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Mengirim...`;
+            } else {
+                button.disabled = false;
+                // Restore original text
+                if (button.id === 'btn-simpan-hadir') button.textContent = 'Simpan';
+                if (button.id === 'btn-kirim-nilai') button.textContent = 'Kirim Nilai';
+                if (button.id === 'btn-kirim-jurnal') button.textContent = 'Kirim';
+            }
+        }
+
+        // --- DATA HANDLING ---
+        async function sendDataToScript(url, payload, button) {
+            // Simple validation for placeholder URLs
+            if (url.includes('YOUR_DEPLOYMENT_ID')) {
+                showNotification('Harap ganti URL placeholder di kode HTML dengan URL Web App Anda.', true);
+                return;
+            }
+            setLoading(button, true);
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors', // Important for simple triggers
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                // Since no-cors hides the response, we assume success if no network error.
+                showNotification('Data berhasil terkirim ke spreadsheet!');
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal mengirim data. Cek konsol untuk detail.', true);
+            } finally {
+                setLoading(button, false);
+            }
+        }
+
+        function saveAttendance() {
+            const button = document.getElementById('btn-simpan-hadir');
+            const tanggal = document.getElementById('dh-tanggal').value;
+            const kelas = document.getElementById('dh-kelas').value;
+
+            if (!tanggal || !kelas) {
+                showNotification('Tanggal dan Kelas wajib diisi!', true);
+                return;
+            }
+
+            const rows = document.querySelectorAll('#dh-table-body tr');
+            const data = [];
+            rows.forEach(row => {
+                const namaSiswa = row.querySelector('.student-name').value;
+                const kehadiran = row.querySelector('.attendance-status').value;
+                if (namaSiswa) { // Only add rows with a student name
+                    data.push([tanggal, namaSiswa, kelas, kehadiran]);
+                }
+            });
+            
+            if (data.length === 0) {
+                showNotification('Tidak ada data untuk disimpan.', true);
+                return;
+            }
+
+            sendDataToScript(SCRIPT_URL_ATTENDANCE, { data }, button);
+        }
+        
+        function saveGrades() {
+            const button = document.getElementById('btn-kirim-nilai');
+            const tanggal = document.getElementById('bn-tanggal').value;
+            const mapel = document.getElementById('bn-mapel').value;
+            const asesmen = document.getElementById('bn-asesmen').value;
+
+            if (!tanggal || !mapel || !asesmen) {
+                showNotification('Tanggal, Mapel, dan Asesmen wajib diisi!', true);
+                return;
+            }
+
+            const rows = document.querySelectorAll('#bn-table-body tr');
+            const data = [];
+
+            rows.forEach(row => {
+                const namaSiswa = row.querySelector('.student-name').value;
+                const nilai = row.querySelector('.grade-nilai').value;
+
+                // Send only rows that have a grade value
+                if (nilai && namaSiswa) {
+                    data.push([tanggal, namaSiswa, mapel, asesmen, nilai]);
+                }
+            });
+
+            if (data.length === 0) {
+                showNotification('Tidak ada nilai untuk dikirim. Isi kolom nilai terlebih dahulu.', true);
+                return;
+            }
+
+            sendDataToScript(SCRIPT_URL_GRADES, { data }, button);
+        }
+
+        function saveJournal() {
+            const button = document.getElementById('btn-kirim-jurnal');
+            const tanggal = document.getElementById('jg-tanggal').value;
+            const jam = document.getElementById('jg-jam').value;
+            const uraian = document.getElementById('jg-uraian').value;
+            const media = document.getElementById('jg-media').value;
+            const catatan = document.getElementById('jg-catatan').value;
+            const refleksi = document.getElementById('jg-refleksi').value;
+
+            if (!tanggal || !uraian) {
+                showNotification('Tanggal dan Uraian Kegiatan wajib diisi!', true);
+                return;
+            }
+
+            const data = [tanggal, jam, uraian, media, catatan, refleksi];
+            sendDataToScript(SCRIPT_URL_JOURNAL, { data }, button);
+            document.getElementById('jurnal-form').reset();
+            document.getElementById('jg-tanggal').value = new Date().toISOString().split('T')[0];
+        }
+
+    </script>
+</body>
+</html>
