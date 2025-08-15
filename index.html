@@ -49,14 +49,26 @@
             opacity: 1;
             transform: translateY(0);
         }
+        /* Sidebar transition */
+        aside {
+            transition: transform 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <div class="flex h-screen">
+    <div class="relative min-h-screen md:flex">
+        <!-- Mobile menu button -->
+        <div class="bg-blue-900 text-gray-100 flex justify-between md:hidden">
+            <a href="#" class="block p-4 text-white font-bold">Admin Guru</a>
+            <button id="mobile-menu-button" class="p-4 focus:outline-none focus:bg-gray-700">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
         <!-- Sidebar -->
-        <aside class="w-64 bg-blue-900 text-white p-4 flex flex-col">
-            <h1 class="text-2xl font-bold mb-8 text-center">Admin Guru</h1>
+        <aside id="sidebar" class="w-64 bg-blue-900 text-white p-4 flex-col fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-30">
+            <h1 class="text-2xl font-bold mb-8 text-center hidden md:block">Admin Guru</h1>
             <nav>
                 <ul>
                     <li>
@@ -82,16 +94,19 @@
                 </ul>
             </nav>
             <div class="mt-auto text-center text-xs">
-                <p>&copy; 2024 Dibuat oleh Gemini</p>
+                <p>&copy; 2025 Dibuat oleh Ahmad Fathoni Mauladi</p>
             </div>
         </aside>
+        
+        <!-- Overlay for mobile -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black opacity-50 hidden z-20 md:hidden"></div>
 
         <!-- Main Content -->
-        <main class="flex-1 p-6 overflow-y-auto">
+        <main class="flex-1 p-4 sm:p-6 overflow-y-auto">
             <!-- Daftar Hadir View -->
             <div id="daftarHadir" class="content-view active">
-                <h2 class="text-3xl font-bold mb-6 text-gray-800">Daftar Hadir Siswa</h2>
-                <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Daftar Hadir Siswa</h2>
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
                             <label for="dh-tanggal" class="block text-sm font-medium text-gray-700">Tanggal</label>
@@ -107,7 +122,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Siswa</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Kehadiran</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Kehadiran</th>
                                 </tr>
                             </thead>
                             <tbody id="dh-table-body" class="bg-white divide-y divide-gray-200">
@@ -115,11 +130,11 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-6 flex justify-between items-center">
-                        <button onclick="addStudentRow('dh-table-body', 'attendance')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                    <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <button onclick="addStudentRow('dh-table-body', 'attendance')" class="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
                             <i class="fas fa-plus mr-2"></i>Tambah Siswa
                         </button>
-                        <button id="btn-simpan-hadir" onclick="saveAttendance()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
+                        <button id="btn-simpan-hadir" onclick="saveAttendance()" class="w-full sm:w-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
                             Simpan
                         </button>
                     </div>
@@ -128,8 +143,8 @@
 
             <!-- Buku Nilai View -->
             <div id="bukuNilai" class="content-view">
-                <h2 class="text-3xl font-bold mb-6 text-gray-800">Buku Nilai Siswa</h2>
-                 <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Buku Nilai Siswa</h2>
+                 <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
                             <label for="bn-tanggal" class="block text-sm font-medium text-gray-700">Tanggal</label>
@@ -149,7 +164,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Siswa</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Nilai</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Nilai</th>
                                 </tr>
                             </thead>
                             <tbody id="bn-table-body" class="bg-white divide-y divide-gray-200">
@@ -157,11 +172,11 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-6 flex justify-between items-center">
-                        <button onclick="addStudentRow('bn-table-body', 'grades')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                    <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <button onclick="addStudentRow('bn-table-body', 'grades')" class="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
                             <i class="fas fa-plus mr-2"></i>Tambah Siswa
                         </button>
-                        <button id="btn-kirim-nilai" onclick="saveGrades()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
+                        <button id="btn-kirim-nilai" onclick="saveGrades()" class="w-full sm:w-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
                             Kirim Nilai
                         </button>
                     </div>
@@ -170,8 +185,8 @@
 
             <!-- Jurnal Guru View -->
             <div id="jurnalGuru" class="content-view">
-                <h2 class="text-3xl font-bold mb-6 text-gray-800">Jurnal Harian Guru</h2>
-                <div class="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Jurnal Harian Guru</h2>
+                <div class="bg-white p-4 sm:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
                     <form id="jurnal-form" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -200,7 +215,7 @@
                             <textarea id="jg-refleksi" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"></textarea>
                         </div>
                         <div class="text-right">
-                            <button type="button" id="btn-kirim-jurnal" onclick="saveJournal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
+                            <button type="button" id="btn-kirim-jurnal" onclick="saveJournal()" class="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-semibold">
                                 Kirim
                             </button>
                         </div>
@@ -231,17 +246,29 @@
         const asesmenOptions = ["PTS", "PAS", "US", "UH", "Tugas"];
 
         // --- GOOGLE APPS SCRIPT URLS ---
-        // !!! PENTING: Ganti URL ini dengan URL Web App Anda setelah deploy !!!
-        const SCRIPT_URL_ATTENDANCE = 'https://script.google.com/macros/s/AKfycbwc22PT2j7P03FmHLJwHXbkZDw44fKx34cN2j5Dpd6i9C0kFFUSJ2YhqjYc2YfrqN0_/exec';
-        const SCRIPT_URL_GRADES = 'https://script.google.com/macros/s/AKfycbxrZECvDMEVKx-_bE1nXou36OboNME0Qp47Amd8Z8qNJVDjfehsPOIPebTqd0M0Uq9U1g/exec';
-        const SCRIPT_URL_JOURNAL = 'https://script.google.com/macros/s/AKfycby74-RoFb6rBo_dGwhcKF4js5weCAcE_caan7ub07MQgIDMldVXU4DWGaj_8tJ4mdha/exec';
+        const SCRIPT_URL_ATTENDANCE = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_DAFTAR_HADIR/exec';
+        const SCRIPT_URL_GRADES = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_BUKU_NILAI/exec';
+        const SCRIPT_URL_JOURNAL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_JURNAL_GURU/exec';
 
-        // --- INITIALIZATION ---
+        // --- INITIALIZATION & RESPONSIVE UI ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            const menuButton = document.getElementById('mobile-menu-button');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            const toggleSidebar = () => {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            };
+
+            menuButton.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+            // Populate tables and dropdowns
             populateTable('dh-table-body', 'attendance');
             populateTable('bn-table-body', 'grades');
             
-            // Populate dropdowns
             const mapelSelect = document.getElementById('bn-mapel');
             const asesmenSelect = document.getElementById('bn-asesmen');
             mapelOptions.forEach(opt => mapelSelect.add(new Option(opt, opt)));
@@ -256,7 +283,6 @@
 
         // --- UI LOGIC ---
         function showView(viewId) {
-            // Don't hide views if it's not a main content view
             if (document.getElementById(viewId)) {
                  document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active'));
                  document.getElementById(viewId).classList.add('active');
@@ -265,6 +291,12 @@
                  const activeLink = document.querySelector(`a[onclick="showView('${viewId}')"]`);
                  if (activeLink) {
                     activeLink.classList.add('active');
+                 }
+                 // Close sidebar on mobile after navigation
+                 const sidebar = document.getElementById('sidebar');
+                 if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.add('-translate-x-full');
+                    document.getElementById('sidebar-overlay').classList.add('hidden');
                  }
             }
         }
@@ -328,7 +360,6 @@
                 newRowHtml = createGradesRow('');
             }
             row.innerHTML = newRowHtml;
-            // Make student name editable for new rows
             row.querySelector('.student-name').readOnly = false;
             row.querySelector('.student-name').classList.remove('bg-gray-100');
             row.querySelector('.student-name').focus();
@@ -341,7 +372,6 @@
                 button.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Mengirim...`;
             } else {
                 button.disabled = false;
-                // Restore original text
                 if (button.id === 'btn-simpan-hadir') button.textContent = 'Simpan';
                 if (button.id === 'btn-kirim-nilai') button.textContent = 'Kirim Nilai';
                 if (button.id === 'btn-kirim-jurnal') button.textContent = 'Kirim';
@@ -350,23 +380,19 @@
 
         // --- DATA HANDLING ---
         async function sendDataToScript(url, payload, button) {
-            // Simple validation for placeholder URLs
             if (url.includes('YOUR_DEPLOYMENT_ID')) {
                 showNotification('Harap ganti URL placeholder di kode HTML dengan URL Web App Anda.', true);
                 return;
             }
             setLoading(button, true);
             try {
-                const response = await fetch(url, {
+                await fetch(url, {
                     method: 'POST',
-                    mode: 'no-cors', // Important for simple triggers
+                    mode: 'no-cors',
                     cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
-                // Since no-cors hides the response, we assume success if no network error.
                 showNotification('Data berhasil terkirim ke spreadsheet!');
             } catch (error) {
                 console.error('Error:', error);
@@ -391,7 +417,7 @@
             rows.forEach(row => {
                 const namaSiswa = row.querySelector('.student-name').value;
                 const kehadiran = row.querySelector('.attendance-status').value;
-                if (namaSiswa) { // Only add rows with a student name
+                if (namaSiswa) {
                     data.push([tanggal, namaSiswa, kelas, kehadiran]);
                 }
             });
@@ -422,7 +448,6 @@
                 const namaSiswa = row.querySelector('.student-name').value;
                 const nilai = row.querySelector('.grade-nilai').value;
 
-                // Send only rows that have a grade value
                 if (nilai && namaSiswa) {
                     data.push([tanggal, namaSiswa, mapel, asesmen, nilai]);
                 }
